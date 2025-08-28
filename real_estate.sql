@@ -226,21 +226,47 @@ WHERE p.status = 'available'
 group by a.agent_id, a.name
 order by total_sales desc;
 
--- 6.Get the client names who purchased properties in the city "new york".
+-- 6.Get the client names who purchased properties in the city "los Angeles".
 select * from clients;
 select * from properties;
-select c.client_id,p.city
+with tab as (select c.client_id,c.name,p.city,p.status
 from clients c join transactions t
 on c.client_id = t.client_id
 join properties p
 on t.property_id = p.property_id
-where city="new york";
+where p.status="sold")
+select client_id,name,city,status
+from tab where city = "los angeles";
 
+-- 7.List all properties that have never been sold (i.e., not present in the Transactions table).
+select * from transactions;
+select * from properties;
+select t.property_id,p.city,p.status
+from properties p right join transactions t
+on p.property_id = t.property_id
+where p.status="available";
 
--- List all properties that have never been sold (i.e., not present in the Transactions table).
+-- 8.Calculate the commission earned by each agent and order it in descending order.
+select * from transactions;
+select a.name,a.agent_id,sum(t.commission)
+from agents a join transactions t
+on a.agent_id=t.agent_id
+group by a.agent_id,a.name
+order by 3 desc;
 
--- Calculate the commission earned by each agent and order it in descending order.
+-- 9.Find the most expensive property sold and the client who bought it.
+select c.client_id,c.name,p.city,t.salesprice,p.status
+from clients c join transactions t
+on c.client_id = t.client_id
+join properties p
+on t.property_id = p.property_id
+where p.status="sold"
+order by 4 desc
+limit 1;
 
--- Find the most expensive property sold and the client who bought it.
-
--- Show the number of properties sold in each city.
+-- 10.Show the number of properties sold in each city.
+select p.city, p.status, count(t.transaction_id) as total_transactions
+from properties p
+join transactions t on p.property_id = t.property_id
+group by p.city, p.status
+having p.status = "sold";
